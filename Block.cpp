@@ -3,10 +3,10 @@
 
 Block::Block(uint32_t nIndexIn, const string &sDataIn) : _nIndex(nIndexIn), _sData(sDataIn)
 {
-	_nNonce = 0;
+	_nRandomness = 0;
 	_tTime = time(nullptr);
 
-	sHash = _CalculateHash();
+	sHash = _CalculateHashPrev();
 }
 
 void Block::MineBlock(uint32_t nDifficulty)
@@ -22,17 +22,30 @@ void Block::MineBlock(uint32_t nDifficulty)
 
 	do
 	{
-		_nNonce++;
-		sHash = _CalculateHash();
+		_nRandomness++;
+		sHash = _CalculateHashPrev();
 	} while (sHash.substr(0, nDifficulty) != str);
 
 	cout << "Block mined: " << sHash << endl;
 }
 
-inline string Block::_CalculateHash() const
+inline string Block::_CalculateHashPrev() const
 {
 	stringstream ss;
-	ss << _nIndex << sPrevHash << _tTime << _sData << _nNonce;
+	ss << _nIndex << sPrevHash << _tTime << _sData << _nRandomness;
 
 	return sha256(ss.str());
+}
+
+inline string Block::_CalculateHashNext() const
+{
+	stringstream ss;
+	ss << _nIndex << sPrevHash << _tTime << _sData;
+
+	return sha256(ss.str());
+}
+
+void Block::UpdateRandomness(uint32_t nRandomnessIn)
+{
+	_nRandomness = nRandomnessIn;
 }
